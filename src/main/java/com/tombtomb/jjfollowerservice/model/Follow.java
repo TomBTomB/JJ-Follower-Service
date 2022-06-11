@@ -22,4 +22,7 @@ public class Follow {
 
     private UUID followerId;
     private UUID followedId;
+
+    private String followerUsername;
+    private String followedUsername;
 }

@@ -14,4 +14,6 @@ public interface FollowRepository extends JpaRepository<Follow, UUID> {
     Page<Follow> findAllByFollowerId(UUID followerId, Pageable pageable);
 
     Optional<Follow> findByFollowerIdAndFollowedId(UUID followerId, UUID followedId);
+
+    Follow findByFollowerUsernameAndFollowedId(String loggedUser, UUID followedId);
 }

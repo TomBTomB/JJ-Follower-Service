@@ -4,12 +4,17 @@ import com.tombtomb.jjfollowerservice.dto.FollowDTO;
 import com.tombtomb.jjfollowerservice.model.Follow;
 import com.tombtomb.jjfollowerservice.repository.FollowRepository;
 import com.tombtomb.jjfollowerservice.service.FollowService;
+import org.keycloak.KeycloakPrincipal;
+import org.keycloak.KeycloakSecurityContext;
+import org.keycloak.representations.AccessToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -26,14 +31,22 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public Follow createFollow(FollowDTO createFollowDTO) {
-        logger.info("Creating new follow between: "+ createFollowDTO.getFollowerId() + " - "+ createFollowDTO.getFollowedId());
-        Follow follow = Follow.builder()
-                .followerId(createFollowDTO.getFollowerId())
-                .followedId(createFollowDTO.getFollowedId())
-                .build();
-        logger.info("Follow created: "+ follow.getId());
-        return followRepository.save(follow);
+    public void toggleFollow(UUID followedId) {
+
+        Follow follow = followRepository.findByFollowerUsernameAndFollowedId(getLoggedUser(), followedId);
+        if(follow != null) {
+            followRepository.delete(follow);
+            logger.info("User=" + getLoggedUser() + ";Unfollowed="+followedId);
+        } else {
+            logger.info("User=" + getLoggedUser() + ";Followed="+followedId);
+            Follow toSave = Follow.builder()
+                    .followerUsername(getLoggedUser())
+                    .followedId(followedId)
+                    .build();
+            Follow save = followRepository.save(toSave);
+            logger.info("Follow created="+ save.getId() + ";Follower=" + save.getFollowerUsername() + ";Followed=" + save.getFollowedId());
+        }
+
     }
 
     @Override
@@ -63,10 +76,21 @@ public class FollowServiceImpl implements FollowService {
         return mapToDTO(follow);
     }
 
+    @Override
+    public boolean isFollowed(UUID followedId) {
+        return followRepository.findByFollowerUsernameAndFollowedId(getLoggedUser(), followedId) != null;
+    }
+
     private FollowDTO mapToDTO(Follow follow) {
         return FollowDTO.builder()
                 .followerId(follow.getFollowerId())
                 .followedId(follow.getFollowedId())
                 .build();
+    }
+
+    private String getLoggedUser() {
+        KeycloakPrincipal principal=(KeycloakPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        KeycloakSecurityContext session = principal.getKeycloakSecurityContext();
+        return session.getToken().getPreferredUsername();
     }
 }

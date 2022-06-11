@@ -22,10 +22,10 @@ public class FollowController {
         this.followService = followService;
     }
 
-    @PostMapping
-    public ResponseEntity<?> createFollow(@Valid @RequestBody FollowDTO followCreateDTO) {
-         val follow = followService.createFollow(followCreateDTO);
-         return ResponseEntity.ok(follow);
+    @PostMapping("/{id}")
+    public ResponseEntity<?> toggleFollow(@PathVariable UUID id) {
+         followService.toggleFollow(id);
+         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/followers/{followedId}")
@@ -52,6 +52,12 @@ public class FollowController {
     public ResponseEntity<?> deleteFollow(@Valid @RequestBody FollowDTO followDTO) {
         val follow = followService.deleteFollow(followDTO);
         return ResponseEntity.ok(follow);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> isFollowed(@PathVariable UUID id) {
+        val isFollowed = followService.isFollowed(id);
+        return ResponseEntity.ok(isFollowed);
     }
 
 }
