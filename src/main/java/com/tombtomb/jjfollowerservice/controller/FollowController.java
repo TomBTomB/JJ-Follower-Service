@@ -4,6 +4,7 @@ import com.tombtomb.jjfollowerservice.dto.FollowDTO;
 import com.tombtomb.jjfollowerservice.service.FollowService;
 import lombok.val;
 import org.springframework.http.ResponseEntity;
+import org.springframework.metrics.annotation.Timed;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/follow")
+@Timed("follow_controller_time")
 public class FollowController {
     private final FollowService followService;
     public static final String DEFAULT_PAGE_NUMBER = "0";
